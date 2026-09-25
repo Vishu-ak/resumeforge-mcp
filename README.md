@@ -1,5 +1,9 @@
 # ResumeForge MCP
 
+[![CI](https://github.com/Vishu-ak/resumeforge-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Vishu-ak/resumeforge-mcp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Glama MCP server](https://glama.ai/mcp/servers/Vishu-ak/resumeforge-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Vishu-ak/resumeforge-mcp)
+
 **An open-source connector that turns any AI assistant into a resume engine tailored to each job description and built to pass ATS screens.**
 
 Works with Claude, ChatGPT, Cursor, VS Code Copilot, Windsurf, Gemini CLI, Codex, and any other client that supports the [Model Context Protocol](https://modelcontextprotocol.io). No API keys, and it's stateless: nothing about the candidate is stored.
@@ -30,6 +34,19 @@ ResumeForge closes that gap **aggressively but truthfully**:
 | Pretty but unparseable PDFs | Single-column DOCX + text-based PDF that Workday, Greenhouse, Lever, iCIMS and Taleo parse cleanly |
 
 > **The one rule:** the resume should be the strongest *true* version of the candidate. A resume that gets the interview but falls apart in it wastes everyone's time. The tool enforces this with a `truth_check` that flags any claim not traceable to the resume, LinkedIn, the candidate's answers, or a bridge project.
+
+## Why not just a prompt?
+
+A good prompt gets you part of the way. The repo even ships one ([`prompts/universal-prompt.md`](prompts/universal-prompt.md)). The connector adds what a prompt can't guarantee:
+
+| With only a prompt | With the ResumeForge connector |
+|---|---|
+| The AI grades its own work, generously, and differently every run | **Deterministic 0–100 score.** Same resume + JD = same score, with every point explained |
+| "Please collect LinkedIn / check claims / get approval" is a request the model can drift from | **Enforced gates.** No files until intake is complete and the candidate approves. Leftover `[N]` metrics are blocked |
+| Loose keyword matching | **Literal, alias-aware matching** like real ATS: 320+ skills and 570+ spellings, telling you exactly where to write "PostgreSQL" vs "Postgres" |
+| Can't reliably check its own claims | **truth_check** compares every skill on the new resume against the original resume, LinkedIn and the candidate's answers |
+| Text you paste into Word and reformat | **ATS-safe DOCX and a one-page PDF,** generated directly |
+| Results vary by model | **Same analysis in Claude, ChatGPT, Cursor or Gemini,** because the tool does the analysis, not the model |
 
 ---
 
