@@ -1,0 +1,30 @@
+Priya Raman
+Bengaluru, India | +91 98450 12345 | priya.raman.dev@example.com | linkedin.com/in/priya-raman-dev | github.com/priyaraman
+
+SUMMARY
+Passionate software engineer with 5 years of experience building web applications and backend services. Results-driven team player.
+
+SKILLS
+Java, Spring Boot, Python, MySQL, Redis, Docker, Jenkins, AWS (EC2, S3), REST APIs, Git, Jira, Agile
+
+EXPERIENCE
+Software Engineer II | Finverse Technologies | Bengaluru
+Mar 2022 - Present
+- Responsible for building REST APIs for the loan disbursement service using Java and Spring Boot
+- Worked on migrating batch jobs to an asynchronous RabbitMQ-based workflow, reducing processing time from 6 hours to 40 minutes
+- Helped with on-call rotation and fixed production issues
+- Built Redis caching layer for credit score lookups, handling 1,200 requests per second
+- Mentored 2 junior engineers on code reviews and testing practices
+
+Software Engineer | CloudKart Retail | Bengaluru
+Jul 2019 - Feb 2022
+- Developed order management microservices in Java handling 50k orders per day
+- Worked on MySQL query optimization which improved report generation speed
+- Created Jenkins pipelines for automated build and deployment to AWS EC2
+- Participated in sprint planning and requirement discussions with product managers
+
+EDUCATION
+B.Tech in Computer Science | PES University | Bengaluru | 2015 - 2019 | GPA: 8.4/10
+
+CERTIFICATIONS
+AWS Certified Cloud Practitioner | 2021

@@ -1,0 +1,31 @@
+Senior Backend Engineer, Payments Platform
+
+About Ledgerly
+Ledgerly builds real-time payments infrastructure for 4,000+ merchants across North America. Our platform moves $2B in transactions every month.
+
+What you'll do
+- Design, build and operate high-throughput microservices in Go that process payment transactions with strict correctness guarantees
+- Build event-driven pipelines with Apache Kafka for settlement, reconciliation and fraud signals
+- Own services end-to-end on AWS (EKS, RDS, SQS) including on-call, observability and incident response
+- Improve reliability and latency of our payment APIs; define SLOs and drive them with Prometheus and Grafana
+- Partner with product, risk and compliance teams to ship features for merchants
+- Mentor engineers and lead technical design reviews
+
+Requirements
+- 5+ years of professional software engineering experience building backend systems
+- Strong proficiency in Go (Golang) or Java, and willingness to work primarily in Go
+- Deep experience with distributed systems, concurrency and designing RESTful APIs and gRPC services
+- Hands-on experience with PostgreSQL and Redis at scale
+- Experience with Kafka or similar event streaming platforms
+- Experience with Docker, Kubernetes and CI/CD pipelines
+- Solid understanding of AWS
+- Excellent communication skills and cross-functional collaboration
+
+Nice to have
+- Experience in fintech, payments, or ledger systems
+- Terraform / Infrastructure as Code
+- Familiarity with PCI DSS compliance
+- OpenTelemetry distributed tracing
+
+Benefits
+Competitive salary, equity, remote-friendly, 401(k) match, health insurance.

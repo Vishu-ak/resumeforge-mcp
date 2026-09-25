@@ -1,0 +1,74 @@
+{
+  "basics": {
+    "name": "Priya Raman",
+    "headline": "Senior Backend Engineer | Distributed Systems · Payments · Java/Go · AWS",
+    "email": "priya.raman.dev@example.com",
+    "phone": "+91 98450 12345",
+    "location": "Bengaluru, India (Open to Remote)",
+    "linkedin": "https://www.linkedin.com/in/priya-raman-dev",
+    "github": "github.com/priyaraman"
+  },
+  "summary": "Backend engineer with 7 years building distributed systems and RESTful microservices for fintech lending and e-commerce, currently on a loan disbursement platform moving funds for thousands of borrowers. Cut batch settlement processing from 6 hours to 40 minutes with an event-driven redesign and scaled Redis-backed APIs to 1,200 requests per second. Brings on-call ownership, mentoring, and close collaboration with product and risk teams.",
+  "skills": [
+    { "category": "Languages", "items": ["Java", "Go (Golang)", "Python", "SQL"] },
+    { "category": "Backend & APIs", "items": ["RESTful APIs", "gRPC", "Spring Boot", "Microservices", "Event-Driven Architecture", "RabbitMQ", "Apache Kafka"] },
+    { "category": "Data", "items": ["PostgreSQL", "MySQL", "Redis"] },
+    { "category": "Cloud & DevOps", "items": ["AWS (EC2, S3)", "Docker", "Kubernetes", "CI/CD (Jenkins)", "Grafana", "Prometheus"] },
+    { "category": "Practices", "items": ["Distributed Systems", "On-call & Incident Response", "Code Review", "Agile/Scrum"] }
+  ],
+  "experience": [
+    {
+      "title": "Software Engineer II (Lending Payments Platform)",
+      "company": "Finverse Technologies",
+      "location": "Bengaluru, India",
+      "start": "Mar 2022",
+      "end": "Present",
+      "bullets": [
+        { "text": "Re-architected loan disbursement settlement from nightly batch jobs to an event-driven RabbitMQ workflow, cutting end-to-end processing time from 6 hours to 40 minutes (89%)", "source": "reframed" },
+        { "text": "Designed and built RESTful microservices in Java and Spring Boot for the loan disbursement service, handling payment transactions with idempotent retries and strict correctness checks", "source": "reframed" },
+        { "text": "Built a Redis caching layer for credit-score lookups, sustaining 1,200 requests per second and removing the database as a latency bottleneck", "source": "original_resume" },
+        { "text": "Owned production services through on-call rotation, triaging incidents with Grafana dashboards backed by a PostgreSQL reporting replica", "source": "linkedin" },
+        { "text": "Mentored 2 junior engineers through code reviews and testing practices, raising the team's review throughput", "source": "original_resume" }
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "CloudKart Retail",
+      "location": "Bengaluru, India",
+      "start": "Jul 2019",
+      "end": "Feb 2022",
+      "bullets": [
+        { "text": "Developed order management microservices in Java processing 50,000 orders per day across distributed services", "source": "original_resume" },
+        { "text": "Optimized MySQL queries and indexes for reporting workloads, improving report generation speed for operations teams", "source": "reframed" },
+        { "text": "Built Jenkins CI/CD pipelines that automated build, test and deployment to AWS EC2 with Docker", "source": "reframed" },
+        { "text": "Partnered with product managers in sprint planning to turn merchant requirements into technical designs", "source": "reframed" }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Event-Driven Payments Processing Pipeline",
+      "link": "github.com/priyaraman/payments-event-pipeline",
+      "tech": ["Go", "Apache Kafka", "gRPC", "PostgreSQL", "Docker", "Kubernetes"],
+      "status": "in_progress",
+      "bullets": [
+        { "text": "Building three Go microservices that process payment events over Apache Kafka with idempotent consumers, retries and a dead-letter queue", "source": "bridge_project" },
+        { "text": "Exposing a gRPC ledger service backed by PostgreSQL, deployed to local Kubernetes with Prometheus metrics and Grafana dashboards", "source": "bridge_project" }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "institution": "PES University",
+      "location": "Bengaluru",
+      "start": "2015",
+      "end": "2019",
+      "gpa": "8.4/10"
+    }
+  ],
+  "certifications": [
+    { "name": "AWS Certified Cloud Practitioner", "issuer": "Amazon Web Services", "date": "2021" }
+  ],
+  "section_order": ["summary", "skills", "experience", "projects", "education", "certifications", "extras"]
+}
