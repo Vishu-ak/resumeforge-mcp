@@ -1,0 +1,8 @@
+# One-click deploy: https://render.com/deploy?repo=https://github.com/Vishu-ak/resumeforge-mcp
+services:
+  - type: web
+    name: resumeforge-mcp
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true

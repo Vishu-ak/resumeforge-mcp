@@ -131,11 +131,14 @@ args = ["-y", "resumeforge-mcp"]
 <details>
 <summary><b>ChatGPT / claude.ai (web and mobile), via a remote connector</b></summary>
 
-Web apps need a hosted HTTPS endpoint. Deploy the included Dockerfile to any container host (Render, Railway, Fly.io, Cloud Run, etc.):
+Web apps need a hosted HTTPS endpoint.
+
+**One click (free tier):** [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Vishu-ak/resumeforge-mcp)
+
+**Or run the prebuilt image anywhere** (Railway, Fly.io, Cloud Run, a VPS…). Every push to `main` publishes it:
 
 ```bash
-docker build -t resumeforge-mcp .
-docker run -p 3333:3333 resumeforge-mcp
+docker run -p 3333:3333 ghcr.io/vishu-ak/resumeforge-mcp:latest
 # MCP endpoint: https://<your-host>/mcp   health check: /health
 ```
 
@@ -213,6 +216,8 @@ npm run dev         # stdio server via tsx
 npm run dev:http    # HTTP server on :3333
 npm run inspect     # open the MCP Inspector against the built server
 ```
+
+**Releasing:** push a tag like `v0.1.1` (matching `package.json`). The Release workflow tests the code, publishes to npm (requires an `NPM_TOKEN` repo secret), and pushes a versioned Docker image to GHCR.
 
 Project layout:
 
