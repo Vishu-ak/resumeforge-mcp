@@ -11,11 +11,10 @@ import {
 } from "docx";
 import { bulletText, type Resume } from "../schemas.js";
 import { certLabel, displayUrl, projectLabel, sectionOrder, skillsTitle } from "../core/resumeText.js";
+import { DOCX_PAGE_DIMENSIONS, type PageSize } from "./pageSize.js";
 
 const FONT = "Calibri";
-const PAGE_W_TWIP = 12240; // US Letter
 const MARGIN = 720; // 0.5"
-const RIGHT_TAB = PAGE_W_TWIP - MARGIN * 2;
 
 const run = (text: string, o: { bold?: boolean; italics?: boolean; size?: number } = {}) =>
   new TextRun({ text, font: FONT, size: o.size ?? 21, bold: o.bold, italics: o.italics });
@@ -28,9 +27,9 @@ function heading(text: string) {
   });
 }
 
-function leftRight(left: TextRun[], right: string) {
+function leftRight(left: TextRun[], right: string, rightTab: number) {
   return new Paragraph({
-    tabStops: [{ type: TabStopType.RIGHT, position: RIGHT_TAB }],
+    tabStops: [{ type: TabStopType.RIGHT, position: rightTab }],
     spacing: { before: 80, after: 20 },
     children: [...left, run(`\t${right}`)],
   });
@@ -49,8 +48,10 @@ function link(url: string) {
   return new ExternalHyperlink({ link: href, children: [new TextRun({ text: displayUrl(url), font: FONT, size: 19, style: "Hyperlink" })] });
 }
 
-export async function renderDocx(r: Resume): Promise<Buffer> {
+export async function renderDocx(r: Resume, pageSize: PageSize = "letter"): Promise<Buffer> {
   const b = r.basics;
+  const page = DOCX_PAGE_DIMENSIONS[pageSize];
+  const rightTab = page.width - MARGIN * 2;
   const children: Paragraph[] = [];
 
   children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 20 }, children: [run(b.name, { bold: true, size: 36 })] }));
@@ -79,7 +80,7 @@ export async function renderDocx(r: Resume): Promise<Buffer> {
     if (key === "experience" && r.experience.length) {
       children.push(heading("Experience"));
       for (const e of r.experience) {
-        children.push(leftRight([run(e.title, { bold: true }), run(` | ${e.company}`)], `${e.start} – ${e.end}`));
+        children.push(leftRight([run(e.title, { bold: true }), run(` | ${e.company}`)], `${e.start} – ${e.end}`, rightTab));
         if (e.location) children.push(new Paragraph({ spacing: { after: 20 }, children: [run(e.location, { italics: true, size: 19 })] }));
         e.bullets.forEach((x) => children.push(bullet(bulletText(x))));
       }
@@ -89,7 +90,7 @@ export async function renderDocx(r: Resume): Promise<Buffer> {
       for (const p of r.projects) {
         const left = [run(p.name + projectLabel(p), { bold: true })];
         if (p.tech.length) left.push(run(` | ${p.tech.join(", ")}`, { italics: true }));
-        children.push(leftRight(left, p.date ?? ""));
+        children.push(leftRight(left, p.date ?? "", rightTab));
         if (p.link) children.push(new Paragraph({ spacing: { after: 20 }, children: [link(p.link)] }));
         p.bullets.forEach((x) => children.push(bullet(bulletText(x))));
       }
@@ -98,7 +99,7 @@ export async function renderDocx(r: Resume): Promise<Buffer> {
       children.push(heading("Education"));
       for (const e of r.education) {
         const dates = [e.start, e.end].filter(Boolean).join(" – ");
-        children.push(leftRight([run(e.degree, { bold: true }), run(` | ${e.institution}${e.location ? `, ${e.location}` : ""}`)], dates));
+        children.push(leftRight([run(e.degree, { bold: true }), run(` | ${e.institution}${e.location ? `, ${e.location}` : ""}`)], dates, rightTab));
         if (e.gpa) children.push(new Paragraph({ children: [run(`GPA: ${e.gpa}`)] }));
         e.details.forEach((d) => children.push(bullet(d)));
       }
@@ -129,7 +130,7 @@ export async function renderDocx(r: Resume): Promise<Buffer> {
         },
       ],
     },
-    sections: [{ properties: { page: { margin: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN } } }, children }],
+    sections: [{ properties: { page: { size: page, margin: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN } } }, children }],
   });
   return Packer.toBuffer(doc);
 }
