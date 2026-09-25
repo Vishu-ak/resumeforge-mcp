@@ -70,7 +70,9 @@ Also exposed: the prompt `tailor_resume` and the resources `resumeforge://guide/
 
 Requires **Node.js 20+**.
 
-> Until the package is published to npm, replace `resumeforge-mcp` below with `github:Vishu-ak/resumeforge-mcp` (npx builds it on first run), or clone and use `node /absolute/path/to/dist/index.js`.
+> The first launch takes about a minute while `npx` downloads and builds the connector from GitHub. After that it starts instantly.
+>
+> **Troubleshooting:** if your app reports `spawn npx ENOENT` (common with nvm or Volta, because desktop apps don't load your shell's PATH), replace `"npx"` with the full path from `which npx`. Or clone the repo, run `npm install`, and use `"command": "<output of which node>"` with `"args": ["/absolute/path/to/resumeforge-mcp/dist/index.js"]`.
 
 <details open>
 <summary><b>Claude Desktop</b></summary>
@@ -80,7 +82,7 @@ Settings → Developer → Edit Config (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "resumeforge": { "command": "npx", "args": ["-y", "resumeforge-mcp"] }
+    "resumeforge": { "command": "npx", "args": ["-y", "github:Vishu-ak/resumeforge-mcp"] }
   }
 }
 ```
@@ -90,7 +92,7 @@ Settings → Developer → Edit Config (`claude_desktop_config.json`):
 <summary><b>Claude Code</b></summary>
 
 ```bash
-claude mcp add resumeforge -- npx -y resumeforge-mcp
+claude mcp add resumeforge -- npx -y github:Vishu-ak/resumeforge-mcp
 ```
 </details>
 
@@ -100,7 +102,7 @@ claude mcp add resumeforge -- npx -y resumeforge-mcp
 ```json
 {
   "mcpServers": {
-    "resumeforge": { "command": "npx", "args": ["-y", "resumeforge-mcp"] }
+    "resumeforge": { "command": "npx", "args": ["-y", "github:Vishu-ak/resumeforge-mcp"] }
   }
 }
 ```
@@ -112,7 +114,7 @@ claude mcp add resumeforge -- npx -y resumeforge-mcp
 ```json
 {
   "servers": {
-    "resumeforge": { "type": "stdio", "command": "npx", "args": ["-y", "resumeforge-mcp"] }
+    "resumeforge": { "type": "stdio", "command": "npx", "args": ["-y", "github:Vishu-ak/resumeforge-mcp"] }
   }
 }
 ```
@@ -124,7 +126,7 @@ claude mcp add resumeforge -- npx -y resumeforge-mcp
 ```toml
 [mcp_servers.resumeforge]
 command = "npx"
-args = ["-y", "resumeforge-mcp"]
+args = ["-y", "github:Vishu-ak/resumeforge-mcp"]
 ```
 </details>
 
