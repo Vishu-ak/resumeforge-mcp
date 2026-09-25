@@ -11,6 +11,8 @@ export interface DateRange {
   current: boolean;
   /** Text on the same line with the dates removed — usually title/company. */
   context: string;
+  /** The raw line the title/company came from (the date line, or the line above it). */
+  sourceLine: string;
   lineIndex: number;
 }
 
@@ -48,10 +50,14 @@ export function extractDateRanges(text: string, now = new Date()): DateRange[] {
       if (!a || !b || b.date < a.date) continue;
       const year = a.date.getFullYear();
       if (year < 1960 || year > now.getFullYear() + 6) continue;
-      let context = line.replace(m[0], " ").replace(/[|•·,()\-–—]+/g, " ").replace(/\s+/g, " ").trim();
+      let sourceLine = line.replace(m[0], " ").trim();
+      let context = sourceLine.replace(/[|•·,()\-–—]+/g, " ").replace(/\s+/g, " ").trim();
       // Title/company is often on the line above the dates.
-      if (context.length < 3 && lineIndex > 0) context = lines[lineIndex - 1].trim();
-      out.push({ raw: m[0], start: a.date, end: b.date, current: b.current, context, lineIndex });
+      if (context.length < 3 && lineIndex > 0) {
+        sourceLine = lines[lineIndex - 1].trim();
+        context = sourceLine;
+      }
+      out.push({ raw: m[0], start: a.date, end: b.date, current: b.current, context, sourceLine, lineIndex });
     }
   });
   return out;

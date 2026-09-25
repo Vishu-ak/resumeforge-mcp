@@ -63,6 +63,8 @@ flowchart LR
     F --> G[score_resume + truth_check]
     G -- score < 85 or unverified claims --> F
     G -- approved by candidate --> H[render_resume → DOCX / PDF]
+    H --> K[build_application_kit → form answers, cover letter, referrals, interview prep]
+    K --> S[scaffold_bridge_project → starter repo to close gaps]
 ```
 
 The AI you're already using does the writing. ResumeForge supplies the **deterministic parts**: JD decoding, weighting, gap strategy, evidence mapping, ATS scoring, integrity checks and file rendering. That keeps results consistent across models.
@@ -74,10 +76,31 @@ The AI you're already using does the writing. ResumeForge supplies the **determi
 | `start_resume_session` | Returns the playbook, the intake checklist, and ATS rules. The AI calls this first. |
 | `validate_intake` | **Hard gate.** Requires name, email, phone, location, a LinkedIn `/in/` URL, and the current resume. Cross-checks resume ↔ LinkedIn (roles, dates, name), finds skills that are on LinkedIn but missing from the resume, and estimates years of experience and career stage. |
 | `analyze_job_description` | Weighted keywords (must-have / nice-to-have / contextual) with the exact **ATS phrasing to mirror** (`Amazon Web Services (AWS)`), ranked **focus points**, seniority, years, education, certifications, domain terms, verbs to mirror, and *implied* expectations. |
-| `analyze_gaps` | A strategy per gap, an evidence map from each focus point to the candidate's best lines, bridge projects, a resume plan (headline, section order for student / new grad / career switcher / senior), and batched questions for the candidate. |
+| `analyze_gaps` | A strategy per gap, an evidence map from each focus point to the candidate's best lines, bridge projects, **quick-win certifications**, and a resume plan: headline, section order (student / new grad / career switcher / senior), a **drop-in Skills section** with a "Familiar with" tier, **job-title translation** ("Member of Technical Staff" → "Software Engineer (MTS)"), and **buried experience to promote** (internships, freelance, open source, TA, hackathons). Plus batched questions for the candidate. |
 | `suggest_bridge_projects` | Company-themed projects across 14 archetypes (backend API, event-driven, cloud/IaC, frontend, LLM/RAG, data pipeline, ML to production, mobile, SRE, security, test automation, systems, OSS, business case), each with stack, build plan, bullet templates and talking points. |
 | `score_resume` | 0–100 ATS simulation: weighted keyword match (45), keywords backed by bullets (10), title alignment (8), bullet quality (15), structure (10), length (5), integrity (7). Returns blockers, top fixes, and a **truth_check**. Also scores plain text, which is useful for before/after. |
 | `render_resume` | Requires `candidate_approved: true` and a valid LinkedIn URL, and refuses unfilled `[N]` placeholders. Outputs **DOCX, PDF (auto-fit to 1 page), Markdown, TXT**, plus LinkedIn alignment suggestions and the final score. |
+| `build_application_kit` | **Everything needed to actually apply** (see below). Saves `Application_Pack.md` + `Cover_Letter.docx` next to the resume, and can log the application to `applications.csv`. |
+| `scaffold_bridge_project` | Generates a **runnable starter repo** for a bridge project: a Go, Python (FastAPI) or TypeScript service with a passing test, CI, a docker-compose for its databases and brokers, and a README carrying the build plan, results table and resume-bullet templates. |
+
+### Paste a JD, get the whole application
+
+After the resume, `build_application_kit` gives the candidate:
+
+| | What's inside |
+|---|---|
+| **Apply-today checklist** | Timing based on posting age, the right file format, and **portal-specific tips** detected from the job URL (Workday, Greenhouse, Lever, Ashby, iCIMS, Taleo, SmartRecruiters, LinkedIn Easy Apply) |
+| **Auto-reject check** | Years, degree, visa sponsorship, location and must-have coverage, each marked ✅ / ⚠️ / ❓ with what to do |
+| **Copy-paste form answers** | Contact fields, "Why us?", "Why you?", a project you're proud of, salary script, notice period, and **"Years of experience with X"**, computed honestly from dated roles, with the basis shown |
+| **Cover letter** | Under 250 words, built from the strongest real achievements, attributed to the right employer |
+| **Referrals and outreach** | LinkedIn people-search links (team members, recruiters, managers, **alumni from your school**), a referral request, a connection note that fits LinkedIn's limit, a recruiter email, and follow-up (dated) and thank-you emails |
+| **LinkedIn updates** | Headline, About section, skills to add, Open-to-Work titles |
+| **Interview prep** | Elevator pitch, likely questions (technical, system design themed to the company's domain, behavioral, "you haven't used X"), and **"defend every bullet"** |
+| **Tracker** | Applied date plus follow-up dates, appended to `applications.csv` once submitted |
+
+See a full example: [`examples/sample-application-pack.md`](examples/sample-application-pack.md).
+
+Every draft is filled from the candidate's real materials. The kit never claims experience from an in-progress project, and the test suite enforces that.
 
 Also exposed: the prompt `tailor_resume` and the resources `resumeforge://guide/playbook` and `resumeforge://guide/ats-rules`.
 
@@ -230,7 +253,8 @@ Bridge project → "Event-Driven Payments Processing Pipeline"
 
 ```bash
 npm install
-npm test            # 35 tests: skills, JD parsing, intake, gaps, scoring, rendering, MCP end-to-end
+npm test            # 54 tests: skills, JD parsing, intake, gaps, scoring, rendering, kit, scaffolds, MCP end-to-end
+npm run smoke:scaffold   # generate every bridge-project skeleton and run its own tests (needs go, python3)
 npm run dev         # stdio server via tsx
 npm run dev:http    # HTTP server on :3333
 npm run inspect     # open the MCP Inspector against the built server

@@ -1,7 +1,7 @@
 import { CATEGORY_LABELS, HARD_CATEGORIES, type SkillCategory } from "../data/skills.js";
 import { ALL_ACTION_VERBS, IRREGULAR_PAST } from "../data/verbs.js";
 import { findSkills, atsPhrasing, type SkillHit } from "./skills.js";
-import { normalizeWhitespace, salientPhrases, unique } from "./text.js";
+import { normalizeWhitespace, salientPhrases, sentences, unique } from "./text.js";
 
 export type SectionKind = "title" | "required" | "preferred" | "responsibilities" | "about" | "benefits" | "unknown";
 export type Importance = "must_have" | "nice_to_have" | "contextual";
@@ -47,6 +47,11 @@ export interface JDAnalysis {
   soft_skills: string[];
   domain_terms: string[];
   implied_expectations: string[];
+  /** Sentences from the "About us" part — raw material for "Why this company?" answers. */
+  about: string[];
+  work_mode: "remote" | "hybrid" | "onsite" | null;
+  /** Visa / sponsorship / clearance language that can auto-reject applicants. */
+  eligibility_notes: string[];
   word_count: number;
 }
 
@@ -341,6 +346,9 @@ export function analyzeJobDescription(jdText: string, opts: { title?: string; co
     soft_skills: keywords.filter((k) => k.category === "soft_skill").map((k) => k.skill),
     domain_terms,
     implied_expectations,
+    about: tagged.filter((t) => t.section === "about").map((t) => t.line).filter((l) => l.split(/\s+/).length >= 6).slice(0, 3),
+    work_mode: /\bhybrid\b/i.test(text) ? "hybrid" : /\b(fully remote|remote[- ](first|friendly)|remote)\b/i.test(text) ? "remote" : /\b(on-?site|in[- ]office|in person)\b/i.test(text) ? "onsite" : null,
+    eligibility_notes: sentences(text).filter((s) => /\b(sponsor(ship)?|visa|authori[sz]ed to work|work authori[sz]ation|citizen(ship)?|green card|permanent resident|security clearance|clearance)\b/i.test(s)).slice(0, 4),
     word_count: text.split(/\s+/).length,
   };
 }

@@ -1,7 +1,7 @@
 {
   "name": "resumeforge-mcp",
-  "version": "0.1.0",
-  "description": "Open-source MCP connector that turns any AI (Claude, ChatGPT, Cursor, Copilot, Gemini) into an ATS-optimized, JD-tailored resume engine for software engineering and every other role.",
+  "version": "0.2.0",
+  "description": "Open-source MCP connector that turns any AI (Claude, ChatGPT, Cursor, Copilot, Gemini) into an ATS-optimized, JD-tailored resume engine and application assistant: tailored resume, cover letter, form answers, referral messages and interview prep.",
   "type": "module",
   "bin": {
     "resumeforge-mcp": "dist/index.js"
@@ -23,7 +23,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
     "prepublishOnly": "npm run build && npm test",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "smoke:scaffold": "tsx scripts/scaffold-smoke.ts"
   },
   "keywords": [
     "mcp",

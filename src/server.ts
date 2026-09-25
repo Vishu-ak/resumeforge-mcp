@@ -7,11 +7,17 @@ import { analyzeJobDescription } from "./core/jd.js";
 import { resumeToText } from "./core/resumeText.js";
 import { scoreResume } from "./core/score.js";
 import { findSkills } from "./core/skills.js";
-import { renderAll, resumeToMarkdown, type Format } from "./render/index.js";
+import { buildApplicationKit } from "./core/kit.js";
+import { scaffoldProject } from "./core/scaffold.js";
+import { defaultOutputDir, fileStem, renderAll, resumeToMarkdown, type Format } from "./render/index.js";
+import { kitToMarkdown, logApplication, renderCoverLetterDocx, writeKitFiles } from "./render/kit.js";
+import { existsSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { CandidateProfile, Resume } from "./schemas.js";
 import { ATS_RULES, INTAKE_CHECKLIST, WORKFLOW } from "./workflow.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
 export interface ServerOptions {
   /** Write rendered files to disk (local stdio use). Remote servers return files inline instead. */
@@ -114,7 +120,7 @@ export function createServer(opts: ServerOptions): McpServer {
     {
       title: "Analyze candidate vs JD gaps",
       description:
-        "Compares the candidate (resume, LinkedIn, extra context) to the JD. For every missing requirement, assigns a strategy (surface, reframe, ask_candidate, bridge_project, quick_learn). Also maps each JD focus point to the candidate's best existing evidence, proposes JD-themed bridge projects, and returns a resume plan (headline, section order, summary formula) plus questions to ask the candidate.",
+        "Compares the candidate (resume, LinkedIn, extra context) to the JD. For every missing requirement, assigns a strategy (surface, reframe, ask_candidate, bridge_project, quick_learn). Also maps each JD focus point to the candidate's best existing evidence, proposes JD-themed bridge projects, suggests quick-win certifications, and returns a resume plan: headline, section order, summary formula, a drop-in Skills section with a 'Familiar with' tier, job-title translations (e.g. 'Member of Technical Staff' → 'Software Engineer (MTS)'), and buried experience worth promoting (internships, freelance, open source). Also returns questions to ask the candidate.",
       inputSchema: {
         ...jdInput,
         resume_text: z.string().describe("Candidate's current resume text"),
@@ -238,9 +244,9 @@ export function createServer(opts: ServerOptions): McpServer {
         ],
         linkedin_alignment: linkedinAlignment(resume, jd?.title ?? role ?? null, candidate_sources?.linkedin_text),
         next_steps: [
+          "Call build_application_kit with the same JD, the candidate's details and this resume. It produces form answers, a cover letter, referral messages, LinkedIn updates and interview prep.",
           "Upload the DOCX to Workday, iCIMS or Taleo portals. The PDF is fine for Greenhouse, Lever and Ashby.",
-          "Update LinkedIn to match (see linkedin_alignment).",
-          "Finish every in-progress item before the interview, and push the code to GitHub.",
+          "Finish every in-progress item before the interview (scaffold_bridge_project creates a starter repo).",
         ],
       };
       const content: ({ type: "text"; text: string } | { type: "resource"; resource: { uri: string; mimeType: string; blob: string } })[] = [
@@ -253,6 +259,120 @@ export function createServer(opts: ServerOptions): McpServer {
         }
       }
       return { content };
+    },
+  );
+
+  // ── 8. Application kit ────────────────────────────────────────────────────
+  server.registerTool(
+    "build_application_kit",
+    {
+      title: "Build the application kit",
+      description:
+        "Everything needed to actually apply, generated from the JD and the candidate's materials: an apply-today checklist with portal-specific tips (Workday, Greenhouse, Lever…), an auto-reject check (years, degree, sponsorship, location, must-haves), copy-paste answers to application form questions (including honest 'years with X' computed from role dates), a cover letter, referral and recruiter messages with LinkedIn search links, a LinkedIn connection note, follow-up and thank-you emails, LinkedIn headline/About/skills updates, interview prep (elevator pitch, likely questions, 'defend every bullet'), and a tracker entry. Call it after render_resume, passing the final resume.",
+      inputSchema: {
+        ...jdInput,
+        job_url: z.string().optional().describe("Posting URL. Used to detect the application portal and tailor tips."),
+        posted: z.string().optional().describe("When it was posted, e.g. '3 days ago' or '2026-09-20'"),
+        candidate: z.object({
+          full_name: z.string(),
+          email: z.string(),
+          phone: z.string().optional(),
+          location: z.string().optional(),
+          linkedin_url: z.string(),
+          github_url: z.string().optional(),
+          portfolio_url: z.string().optional(),
+          resume_text: z.string().describe("The candidate's ORIGINAL resume text"),
+          linkedin_text: z.string().optional(),
+          additional_context: z.string().optional(),
+          work_authorization: z.string().optional(),
+          needs_sponsorship: z.boolean().optional(),
+          willing_to_relocate: z.boolean().optional(),
+          notice_period: z.string().optional(),
+          salary_expectation: z.string().optional(),
+          referral_contact: z.string().optional().describe("Name of an employee who referred them, if any"),
+        }),
+        resume: Resume.optional().describe("The final tailored resume (strongly recommended)"),
+        save_files: z.boolean().default(true).describe("Local mode: save Application_Pack.md and Cover_Letter.docx next to the resume"),
+        log_application: z.boolean().default(false).describe("Append to applications.csv. Set true only after the candidate confirms they submitted."),
+        output_dir: z.string().optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    },
+    async ({ jd_text, job_title, company, job_url, posted, candidate, resume, save_files, log_application, output_dir }) => {
+      const kit = buildApplicationKit({ jd_text, job_title, company, job_url, posted, candidate, resume });
+      const markdown = kitToMarkdown(kit);
+      const saved: Record<string, string> = {};
+      if (opts.writeFiles && save_files) {
+        const stem = resume ? fileStem(resume, kit.job.company, kit.job.title.split(",")[0]) : candidate.full_name.replace(/\W+/g, "_");
+        Object.assign(saved, await writeKitFiles(kit, stem, output_dir));
+      }
+      if (opts.writeFiles && log_application) saved.tracker = await logApplication(kit, output_dir);
+      const meta = {
+        job: kit.job,
+        files: Object.keys(saved).length ? saved : opts.writeFiles ? "not saved (save_files=false)" : "returned inline below",
+        knockout_summary: kit.knockout_check.map((k) => `${k.status.toUpperCase()}: ${k.check}. ${k.advice}`),
+        placeholders_to_fill: [...new Set(markdown.match(/\[[A-Z][^\]]{2,80}\]/g) ?? [])].slice(0, 12),
+        polish_instructions: kit.polish_instructions,
+        present_to_candidate:
+          "Show the apply-today checklist first, then the knockout check, then ask for anything in placeholders_to_fill. Hand over the rest of the pack as a file or in sections, not as one wall of text.",
+      };
+      const content: ({ type: "text"; text: string } | { type: "resource"; resource: { uri: string; mimeType: string; blob: string } })[] = [
+        { type: "text", text: JSON.stringify(meta, null, 2) },
+        { type: "text", text: markdown },
+      ];
+      if (!opts.writeFiles) {
+        const docx = await renderCoverLetterDocx(kit.cover_letter);
+        content.push({ type: "resource", resource: { uri: "resumeforge://files/cover-letter.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", blob: docx.toString("base64") } });
+      }
+      return { content };
+    },
+  );
+
+  // ── 9. Bridge project starter repo ────────────────────────────────────────
+  server.registerTool(
+    "scaffold_bridge_project",
+    {
+      title: "Scaffold a bridge project repo",
+      description:
+        "Generates a runnable starter repository for a bridge project: a Go, Python (FastAPI) or TypeScript service with a /health endpoint and a passing test, CI, a docker-compose for the stack's databases and brokers, a README carrying the build plan, results table and resume-bullet templates, and a BUILD_LOG. Java gets a Spring Initializr command. Pass a project from analyze_gaps or suggest_bridge_projects.",
+      inputSchema: {
+        project: z.object({
+          name: z.string(),
+          pitch: z.string().optional(),
+          stack: z.array(z.string()).optional(),
+          closes_gaps: z.array(z.string()).optional(),
+          build_plan: z.array(z.string()).optional(),
+          resume_bullets_template: z.array(z.string()).optional(),
+          interview_talking_points: z.array(z.string()).optional(),
+        }),
+        language: z.enum(["go", "python", "typescript", "java"]).optional().describe("Defaults to the stack's main language"),
+        jd_text: z.string().optional().describe("Used to name routes after the company's domain"),
+        github_username: z.string().optional(),
+        output_dir: z.string().optional().describe("Local mode: parent folder. Defaults to ~/ResumeForge/projects"),
+        overwrite: z.boolean().default(false),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    },
+    async ({ project, language, jd_text, github_username, output_dir, overwrite }) => {
+      const result = scaffoldProject({ ...project, language, jd_text, github_username });
+      if (!opts.writeFiles) {
+        return json({ ...result, how_to_use: "Create each file at its path (relative to a new folder named repo_name), then follow next_steps." });
+      }
+      const root = resolve(output_dir ?? join(defaultOutputDir(), "projects"), result.repo_name);
+      if (existsSync(root) && !overwrite) {
+        return fail(`${root} already exists. Pass overwrite=true to replace the scaffold files, or choose another output_dir.`);
+      }
+      for (const [rel, body] of Object.entries(result.files)) {
+        const file = join(root, rel);
+        await mkdir(dirname(file), { recursive: true });
+        await writeFile(file, body);
+      }
+      return json({
+        created: root,
+        language: result.language,
+        files: Object.keys(result.files),
+        next_steps: [`cd "${root}"`, ...result.next_steps.slice(1)],
+      });
     },
   );
 

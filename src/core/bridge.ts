@@ -34,7 +34,7 @@ export interface BridgeInput {
 
 const cap = (s: string) => s.replace(/(^|[\s-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
 
-function pickTheme(jdText: string) {
+export function pickTheme(jdText: string) {
   let best: (typeof DOMAIN_THEMES)[number] | null = null;
   let bestCount = 0;
   for (const t of DOMAIN_THEMES) {

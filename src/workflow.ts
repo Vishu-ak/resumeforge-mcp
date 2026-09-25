@@ -53,6 +53,13 @@ Call analyze_gaps. For each gap, follow its strategy:
   days, themed to the company's domain. Until they're built they appear as "In Progress". You may make the
   projects more creative and specific to the company (their product, their users, their scale), and that's
   encouraged, but keep the gap skills in the stack.
+Also use these outputs from analyze_gaps:
+- resume_plan.title_translations: offer the market title with the official one in parentheses.
+- resume_plan.experience_promotions: turn real internships, freelance, open-source, TA, research
+  and hackathon work into dated Experience entries.
+- resume_plan.skills_section_draft: start from it. It's already in the JD's wording and order, with
+  a "Familiar with" line for skills they've only touched.
+- quick_win_certifications: suggest one. List it as "(In Progress, expected <date>)" only once they start.
 Ask the candidate the questions_for_candidate in one batch. Wait for answers.
 
 ## Step 4: Draft the resume (structured JSON matching the Resume schema)
@@ -60,13 +67,18 @@ Ask the candidate the questions_for_candidate in one batch. Wait for answers.
 - Summary (2–3 lines): use resume_plan.summary_formula. No "I", no clichés.
 - Skills: group by the JD's category_emphasis order. Put must-haves first, using write_as phrasing.
   8–14 items per line at most. Only list skills with evidence (resume, LinkedIn, confirmed, or bridge project).
-- Experience: reverse-chronological. Keep real titles, companies and dates exactly. You may add a
-  clarifying specialty in parentheses if accurate, e.g. "Software Engineer (Payments Platform)".
+- Experience: reverse-chronological. Keep real companies and dates exactly. For titles, use
+  resume_plan.title_translations: the market title with the official title in parentheses
+  ("Software Engineer (Member of Technical Staff)"), or an accurate specialty ("Software Engineer II (Backend)").
+  Employment verification must still match the official title.
   - 3–6 bullets per recent role, 1–3 for old roles.
   - Order bullets so the top bullet of each role proves the #1 focus point that role can support.
   - Formula: Action verb + what you built/changed + how (JD skills) + measurable result.
     "Reduced checkout API p95 latency 42% (380→220 ms) by adding Redis caching and query indexing in Go."
   - Every must-have skill appears in the Skills section and in at least one bullet.
+  - Maximum defensible framing: claim the full real scope ("co-led", "owned X within team Y",
+    "designed and shipped"), lead with outcomes, and use real business context ("for 4,000 merchants").
+    Every word must survive "tell me more about that" in an interview.
   - Numbers: use the candidate's real numbers. If they don't know exact figures, ask for a defensible
     estimate ("~30%", "10k+ users") and confirm it. Never invent metrics.
 - Projects: bridge projects with status "in_progress" until finished; completed ones with real metrics.
@@ -84,13 +96,24 @@ Show the candidate the final resume as Markdown plus the score (before → after
 bridge-project/in-progress item. After they approve, call render_resume with candidate_approved=true
 (DOCX for most portals, and PDF when the portal accepts it).
 
-## Step 7: Hand-off package
-Give the candidate:
-1. The file(s) and their final ATS score.
-2. LinkedIn updates to make the profile match (headline, About opener, skills to add), taken from
-   render_resume.linkedin_alignment.
-3. For each bridge project: the build plan and a "finish before interview" checklist.
-4. The 5 interview questions this resume will most likely trigger, with talking points.
+## Step 7: Application kit (spoon-feed the rest of the application)
+Call build_application_kit with the JD, the candidate's details, their ORIGINAL resume text and the
+final resume. Ask for the job URL and posting date if you don't have them (they unlock portal
+tips and timing). Then give the candidate, in this order:
+1. The apply-today checklist and the auto-reject check. Flag any "risk" rows clearly.
+2. The placeholders_to_fill (salary, notice period, authorization). Ask for them in one message.
+3. The copy-paste form answers and the cover letter (Application_Pack.md and Cover_Letter.docx are
+   saved next to the resume in local mode).
+4. The referral request, LinkedIn connection note and the "find people" links. Referrals are the
+   single biggest lever on interview rate.
+5. The LinkedIn headline, About and skills updates.
+6. Interview prep: the elevator pitch, likely questions and "defend every bullet".
+Polish the drafts' tone if needed, but never add facts. When the candidate confirms they submitted,
+call build_application_kit again with log_application=true to add it to their tracker.
+
+## Step 8: Close the gaps for real
+For each bridge project the candidate chose, call scaffold_bridge_project. It creates a runnable
+starter repo with tests, CI and the build plan, so "In Progress" becomes "Built" before the interview.
 
 ## Hard rules (the resume has to survive the interview and the background check)
 - Never fabricate employers, job titles, dates, degrees, certifications, clearances, or metrics.

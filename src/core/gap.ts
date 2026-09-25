@@ -1,7 +1,10 @@
 import { CATEGORY_LABELS, HARD_CATEGORIES, type SkillCategory } from "../data/skills.js";
+import { draftSkillsSection, suggestQuickCerts, type CertSuggestion, type SkillsLine } from "./boost.js";
 import { suggestBridgeProjects, type BridgeProject } from "./bridge.js";
 import type { JDAnalysis, JDKeyword } from "./jd.js";
 import { estimateYearsOfExperience } from "./resumeParse.js";
+import { findHiddenExperience, professionalRoles, type ExperiencePromotion } from "./roles.js";
+import { translateTitles, type TitleTranslation } from "./titles.js";
 import { findSkills, impliedBy } from "./skills.js";
 import { isStopword, toLines, unique } from "./text.js";
 
@@ -62,8 +65,15 @@ export interface GapAnalysis {
     section_order: string[];
     summary_formula: string;
     skills_section_order: string[];
+    /** Drop-in Skills section (JD phrasing, JD emphasis order, "Familiar with" tier). */
+    skills_section_draft: SkillsLine[];
+    /** Internal titles mapped to the market title recruiters search for. */
+    title_translations: TitleTranslation[];
+    /** Real but buried work that deserves its own Experience entry. */
+    experience_promotions: ExperiencePromotion[];
     notes: string[];
   };
+  quick_win_certifications: CertSuggestion[];
   questions_for_candidate: string[];
 }
 
@@ -287,6 +297,18 @@ export function analyzeGaps(
 
   const skillsOrder = unique(jd.keywords.filter((k) => HARD_CATEGORIES.has(k.category)).map((k) => CATEGORY_LABELS[k.category])).slice(0, 6);
 
+  const learning = new Set(gaps.filter((g) => g.learning).map((g) => g.skill));
+  for (const s of candidateSkills) if (isLearningMention(s, `${candidate.linkedin_text ?? ""}\n${candidate.additional_context ?? ""}`)) learning.add(s);
+  const other = new Map([...liHits, ...ctxHits]);
+  const skills_section_draft = draftSkillsSection(jd, { resume: resumeHits, other }, learning);
+  const title_translations = translateTitles(professionalRoles(candidate.resume_text), jd.title);
+  const experience_promotions = findHiddenExperience(candidate);
+  const quick_win_certifications = suggestQuickCerts(
+    jd,
+    gaps.filter((g) => g.strategy !== "surface" || g.learning).map((g) => ({ skill: g.skill, weight: g.weight })),
+    `${candidate.resume_text}\n${candidate.linkedin_text ?? ""}`,
+  );
+
   const questions: string[] = [];
   const askable = gaps
     .filter((g) => g.strategy !== "surface" && g.importance !== "contextual")
@@ -301,6 +323,12 @@ export function analyzeGaps(
     questions.push("For the JD focus points with no matching evidence (see evidence_map), do you have any real example, even a small one?");
   }
   questions.push("For your top 3 accomplishments, what changed because of your work? Numbers help: % faster, $ saved, users, requests/sec, hours saved, error rate.");
+  if (experience_promotions.length) {
+    questions.push(`These look like real experience that isn't listed as a role yet: ${experience_promotions.slice(0, 3).map((e) => `"${e.evidence.slice(0, 60)}…"`).join("; ")}. What were the organization and dates for each?`);
+  }
+  if (quick_win_certifications.length) {
+    questions.push(`Would you start one of these quick certifications now? It can go on the resume as "In Progress": ${quick_win_certifications.map((c) => `${c.name} (${c.prep.split(" (")[0]})`).join("; ")}.`);
+  }
   if (bridge_projects.length) {
     questions.push(`Would you build ${bridge_projects.length === 1 ? "this bridge project" : "one of these bridge projects"} before applying (${bridge_projects.map((p) => p.name).join("; ")})? I'll list it as "In Progress" until it's done.`);
   }
@@ -325,8 +353,12 @@ export function analyzeGaps(
       summary_formula:
         "[JD title] with [N years / background] in [top 2 JD domains]. Built/shipped [most relevant proof with a metric] using [3–4 must-have skills]. Brings [1 differentiator tied to a JD focus point]. 2–3 lines, no clichés, no 'I'.",
       skills_section_order: skillsOrder,
+      skills_section_draft,
+      title_translations,
+      experience_promotions,
       notes,
     },
+    quick_win_certifications,
     questions_for_candidate: questions,
   };
 }
