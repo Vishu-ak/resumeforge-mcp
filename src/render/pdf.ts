@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import { existsSync } from "node:fs";
 import { bulletText, type Resume } from "../schemas.js";
+import type { PageSize } from "./pageSize.js";
 import { certLabel, contactLine, contactParts, displayUrl, projectLabel, sectionOrder, skillsTitle } from "../core/resumeText.js";
 
 /**
@@ -35,8 +36,8 @@ const SCALES: Scale[] = [
   { body: 9.2, gap: 0.55 },
 ];
 
-function build(r: Resume, sc: Scale): { doc: PDFKit.PDFDocument; pages: number; done: Promise<Buffer> } {
-  const doc = new PDFDocument({ size: "LETTER", margins: { top: 36, bottom: 36, left: 40, right: 40 }, bufferPages: true, info: { Title: `${r.basics.name} Resume`, Author: r.basics.name } });
+function build(r: Resume, sc: Scale, pageSize: PageSize): { doc: PDFKit.PDFDocument; pages: number; done: Promise<Buffer> } {
+  const doc = new PDFDocument({ size: pageSize === "a4" ? "A4" : "LETTER", margins: { top: 36, bottom: 36, left: 40, right: 40 }, bufferPages: true, info: { Title: `${r.basics.name} Resume`, Author: r.basics.name } });
   const chunks: Buffer[] = [];
   doc.on("data", (c: Buffer) => chunks.push(c));
   const done = new Promise<Buffer>((res) => doc.on("end", () => res(Buffer.concat(chunks))));
@@ -161,10 +162,10 @@ function build(r: Resume, sc: Scale): { doc: PDFKit.PDFDocument; pages: number; 
 }
 
 /** Render, tightening typography until the resume fits in `maxPages`. */
-export async function renderPdf(r: Resume, maxPages = 1): Promise<{ buffer: Buffer; pages: number; fitted: boolean }> {
+export async function renderPdf(r: Resume, maxPages = 1, pageSize: PageSize = "letter"): Promise<{ buffer: Buffer; pages: number; fitted: boolean }> {
   let last: { buffer: Buffer; pages: number } | null = null;
   for (const sc of SCALES) {
-    const { pages, done } = build(r, sc);
+    const { pages, done } = build(r, sc, pageSize);
     const buffer = await done;
     last = { buffer, pages };
     if (pages <= maxPages) return { ...last, fitted: true };
