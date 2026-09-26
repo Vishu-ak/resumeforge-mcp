@@ -6,6 +6,7 @@ import type { ParsedRole } from "./roles.js";
  * still matches: "Software Engineer (Member of Technical Staff)".
  */
 const RULES: { re: RegExp; market: string; note: string; onlyIfSoftware?: boolean }[] = [
+  { re: /\b(software|web|application|backend|frontend|full[- ]?stack)?\s*(developer|programmer|engineering)\s+intern\b|\bsde intern\b/i, market: "Software Engineer Intern", note: "Recruiters search 'Software Engineer Intern'.", onlyIfSoftware: true },
   { re: /\bmember of technical staff\b|\bmts\b/i, market: "Software Engineer", note: "MTS is a software engineering title at many companies." },
   { re: /\bsoftware development engineer\b|\bsde\b/i, market: "Software Engineer", note: "SDE is widely understood, but most searches use 'Software Engineer'." },
   { re: /\b(programmer analyst|associate consultant|technology analyst|systems engineer|senior systems engineer|application development (analyst|associate)|associate software engineer|associate engineer|software engineer trainee|graduate engineer trainee|get)\b/i, market: "Software Engineer", note: "Common IT-services title; recruiters search for 'Software Engineer'.", onlyIfSoftware: true },
@@ -59,7 +60,11 @@ export function translateTitles(roles: ParsedRole[], jdTitle: string | null): Ti
     const specialtyApplies = !!spec && (SPECIALTY_EVIDENCE[spec]?.test(r.text) ?? false) && !new RegExp(spec, "i").test(r.title);
     if (rule && !new RegExp(`^${rule.market}\\b`, "i").test(r.title)) {
       const market = level && /^(I{1,3}|IV|[1-4])$/.test(level) ? `${rule.market} ${level}` : rule.market;
-      out.push({ original: r.title, company: r.company, suggested: `${market} (${r.title})`, reason: rule.note });
+      // "Software Developer Intern (Capstone)" → "Software Engineer Intern (Capstone)": keep the qualifier, don't nest parentheses.
+      const qualifier = r.title.match(/\(([^)]+)\)\s*$/)?.[1];
+      const bare = r.title.replace(/\s*\([^)]*\)\s*$/, "");
+      const suggested = qualifier ? `${market} (${qualifier})` : `${market} (${bare})`;
+      out.push({ original: r.title, company: r.company, suggested, reason: rule.note });
     } else if (specialtyApplies) {
       out.push({
         original: r.title,

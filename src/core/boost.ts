@@ -48,8 +48,10 @@ export function draftSkillsSection(
     const group = GROUP[hit.skill.category];
     if (!group) continue;
     const k = kw.get(name);
-    // Non-JD skills only pad the list if they're on the resume itself.
+    // Non-JD skills only pad the list if they're on the resume itself, and never with
+    // business-domain inferences ("procurement" → Supply Chain) or generic tools like Excel.
     if (!k && !have.resume.has(name)) continue;
+    if (!k && (["business", "soft_skill", "product", "design"].includes(hit.skill.category) || name === "Microsoft Excel")) continue;
     const label = k?.write_as ?? name;
     if (learning.has(name) && !have.resume.has(name)) {
       familiar.push(label);

@@ -100,7 +100,7 @@ const ADJACENT: string[][] = [
   ["Docker", "Kubernetes"],
   ["JavaScript", "TypeScript"],
   ["Python", "Ruby", "PHP"],
-  ["C++", "C", "Rust", "Go"],
+  ["C", "C++"],
   ["Scrum", "Agile", "Kanban"],
 ];
 

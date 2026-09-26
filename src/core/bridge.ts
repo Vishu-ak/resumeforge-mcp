@@ -34,11 +34,16 @@ export interface BridgeInput {
 
 const cap = (s: string) => s.replace(/(^|[\s-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
 
+const BENEFITS_LINE = /\b(benefits?|insurance|401\s?\(?k\)?|pto|paid time off|dental|vision|equity|salary|compensation|perks|parental leave)\b/i;
+/** "May have to travel a few times a year" is a job requirement, not the company's industry. */
+const JOB_TRAVEL_LINE = /^\s*travel:?\s*$|\b(have to|required to|willing to|ability to|expected to|may) travel\b|\btravel (up to|a few times|requirements?|required)\b|\d+%\s*travel\b/i;
+
 export function pickTheme(jdText: string) {
+  const text = jdText.split("\n").filter((l) => !BENEFITS_LINE.test(l) && !JOB_TRAVEL_LINE.test(l)).join("\n");
   let best: (typeof DOMAIN_THEMES)[number] | null = null;
   let bestCount = 0;
   for (const t of DOMAIN_THEMES) {
-    const count = (jdText.match(new RegExp(t.match.source, "gi")) ?? []).length;
+    const count = (text.match(new RegExp(t.match.source, "gi")) ?? []).length;
     if (count > bestCount) {
       best = t;
       bestCount = count;

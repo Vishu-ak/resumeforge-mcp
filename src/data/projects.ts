@@ -338,6 +338,7 @@ export const DOMAIN_THEMES: DomainTheme[] = [
   { match: /\b(media|streaming|video|music|content)\b/i, domain: "media-streaming", entity: "stream", entities: "content streams", event: "playback", users: "viewers" },
   { match: /\b(social|community|messaging|chat)\b/i, domain: "social", entity: "post", entities: "posts", event: "engagement", users: "members" },
   { match: /\b(iot|devices?|sensors?|embedded|automotive|vehicle)\b/i, domain: "IoT", entity: "device", entities: "devices", event: "telemetry", users: "operators" },
+  { match: /\b(car wash|memberships?|subscriptions?|loyalty|point[- ]of[- ]sale|franchise|multi-location|restaurants?|quick[- ]service)\b/i, domain: "membership", entity: "member visit", entities: "member visits", event: "visit", users: "members" },
   { match: /\b(saas|b2b|enterprise|crm|workflow)\b/i, domain: "B2B SaaS", entity: "workspace", entities: "workspaces", event: "workflow", users: "team admins" },
 ];
 

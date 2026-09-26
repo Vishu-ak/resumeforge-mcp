@@ -208,9 +208,15 @@ export function analyzeJobDescription(jdText: string, opts: { title?: string; co
   const title = detectTitle(rawLines, opts.title);
 
   // 2. Years of experience.
-  const yearsMatches = [...text.matchAll(/(\d{1,2})\s*\+?\s*(?:-|to|–)?\s*(\d{1,2})?\s*\+?\s*years?/gi)];
-  const yearsVals = yearsMatches.map((m) => Number(m[1])).filter((n) => n > 0 && n < 30);
-  const years_required = yearsVals.length ? Math.min(...yearsVals) : null;
+  // Years of experience: a general requirement ("4+ years of industry experience") beats a
+  // skill-specific one ("2+ years with Go"), which is kept on that keyword instead.
+  const yearsOf = (lines: string[]) =>
+    lines.flatMap((l) => [...l.matchAll(/(\d{1,2})\s*\+?\s*(?:-|to|–)?\s*(\d{1,2})?\s*\+?\s*years?/gi)].map((m) => Number(m[1]))).filter((n) => n > 0 && n < 30);
+  const allLines = text.split("\n");
+  const namesTech = (l: string) => [...findSkills(l).values()].some((h) => HARD_CATEGORIES.has(h.skill.category));
+  const general = yearsOf(allLines.filter((l) => /years?/i.test(l) && !namesTech(l)));
+  const anyYears = yearsOf(allLines);
+  const years_required = general.length ? Math.min(...general) : anyYears.length ? Math.min(...anyYears) : null;
 
   // 3. Skill keywords, weighted by where they appear.
   type Agg = { hit: SkillHit; weight: number; sections: Set<SectionKind>; cues: Set<"req" | "pref">; years?: number };
