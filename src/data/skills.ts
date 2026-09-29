@@ -179,7 +179,7 @@ export const SKILLS: SkillDef[] = [
 
   // ── Cloud ────────────────────────────────────────────────────────────────
   s("AWS", "cloud", "amazon web services"),
-  s("Microsoft Azure", "cloud", "azure"),
+  s("Microsoft Azure", "cloud", "azure", "az-900", "az-104", "az-204", "az-305"),
   s("Google Cloud Platform", "cloud", "gcp", "google cloud"),
   s("AWS Lambda", "cloud", "lambda"),
   s("Amazon EC2", "cloud", "ec2"),
@@ -198,7 +198,7 @@ export const SKILLS: SkillDef[] = [
   s("Cloudflare", "cloud", "cloudflare workers"),
   s("DigitalOcean", "cloud"),
   s("Multi-cloud", "cloud", "hybrid cloud"),
-  s("Cloud Architecture", "cloud", "cloud native", "cloud-native", "well-architected"),
+  s("Cloud Architecture", "cloud", "cloud native", "cloud-native", "well-architected", "cloud technologies", "cloud computing", "cloud platforms"),
 
   // ── DevOps / Infra ───────────────────────────────────────────────────────
   s("Docker", "devops", "containers", "containerization", "dockerfile"),
@@ -271,6 +271,8 @@ export const SKILLS: SkillDef[] = [
   s("Computer Vision", "ml_ai", "opencv", "image recognition", "object detection"),
   s("MLOps", "ml_ai", "mlflow", "kubeflow", "model deployment", "model serving", "sagemaker", "vertex ai"),
   s("LLM Evaluation", "ml_ai", "evals", "llm evals", "model evaluation"),
+  s("AI Governance", "ml_ai", "ai governance", "ai guardrails", "guardrails", "responsible ai", "ai safety", "ai risk management", "auditability"),
+  s("AI Automation", "ml_ai", "ai automation", "ai-powered automation", "intelligent automation"),
   s("Recommendation Systems", "ml_ai", "recommender systems", "recommendation engine"),
   s("Reinforcement Learning", "ml_ai"),
   s("Jupyter", "ml_ai", "jupyter notebooks", "notebooks"),
@@ -307,6 +309,8 @@ export const SKILLS: SkillDef[] = [
   s("Compliance", "security", "soc 2", "soc2", "gdpr", "hipaa", "pci dss", "pci-dss", "iso 27001"),
 
   // ── Architecture & CS fundamentals ──────────────────────────────────────
+  s("Enterprise Architecture", "architecture", "enterprise architecture", "integration architecture", "solution architecture", "solutions architecture", "togaf"),
+  s("Enterprise Integration", "architecture", "enterprise integrations", "system integration", "systems integration", "enterprise platforms", "integration patterns"),
   s("System Design", "architecture", "systems design", "high-level design", "low-level design", "hld", "lld"),
   s("Distributed Systems", "architecture", "distributed computing"),
   s("Scalability", "architecture", "scalable systems", "high availability", "fault tolerance", "horizontal scaling"),
@@ -344,7 +348,9 @@ export const SKILLS: SkillDef[] = [
   s("Figma", "tool"),
   s("Salesforce", "tool", "sfdc", "apex"),
   s("SAP", "tool", "sap erp", "s/4hana"),
-  s("ServiceNow", "tool"),
+  s("ServiceNow", "tool", "servicenow ecosystem", "now platform"),
+  s("IT Service Management", "tool", "itsm", "it service management", "incident management workflows"),
+  s("Workflow Automation", "practice", "process automation", "workflow automation", "approval workflows", "automation"),
   s("HubSpot", "tool"),
   s("Google Analytics", "tool", "ga4"),
   s("Notion", "tool"),

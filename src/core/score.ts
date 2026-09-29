@@ -168,7 +168,11 @@ export function scoreResume(
     integ -= 1;
     fixes.push({ impact: 2, text: `Remove clichés recruiters skip: ${cliches.join(", ")}.` });
   }
-  const overused = [...hits.values()].filter((h) => h.count > 7).map((h) => h.skill.name);
+  // Count standalone mentions only: the "AI" inside "Generative AI" isn't a separate use of "AI".
+  const allSpans = [...hits.values()].flatMap((h) => h.spans.map((s) => ({ s, skill: h.skill.name })));
+  const standalone = (h: (typeof hits extends Map<string, infer V> ? V : never)) =>
+    h.spans.filter(([a, b]) => !allSpans.some((o) => o.skill !== h.skill.name && o.s[0] <= a && o.s[1] >= b && o.s[1] - o.s[0] > b - a)).length;
+  const overused = [...hits.values()].filter((h) => standalone(h) > 7).map((h) => h.skill.name);
   if (overused.length) {
     integ -= 1;
     fixes.push({ impact: 2, text: `Possible keyword stuffing (7+ mentions): ${overused.join(", ")}. Modern ATS and humans both penalize it.` });

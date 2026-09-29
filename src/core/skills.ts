@@ -9,6 +9,8 @@ export interface SkillHit {
   matchedTerms: string[];
   /** Character offsets of each occurrence. */
   positions: number[];
+  /** [start, end) of each occurrence. */
+  spans: [number, number][];
 }
 
 interface CompiledTerm {
@@ -17,7 +19,7 @@ interface CompiledTerm {
   re: RegExp;
 }
 
-const LEFT = "(?<![A-Za-z0-9_+#.])";
+const LEFT = "(?<![A-Za-z0-9_+#.]|[A-Za-z]-)";
 const RIGHT = "(?![A-Za-z0-9_+#])(?!\\.[A-Za-z0-9])";
 
 function compile(skill: SkillDef, term: string): CompiledTerm {
@@ -59,13 +61,20 @@ export function findSkills(text: string): Map<string, SkillHit> {
       if (skill.caseSensitive && m[0].length <= 2 && atSentenceStart(text, m.index)) continue;
       let hit = hits.get(skill.name);
       if (!hit) {
-        hit = { skill, count: 0, matchedTerms: [], positions: [] };
+        hit = { skill, count: 0, matchedTerms: [], positions: [], spans: [] };
         hits.set(skill.name, hit);
       }
       // Overlapping matches of the same skill ("node" inside "node.js") count once.
-      const overlaps = hit.positions.some((p) => Math.abs(p - m!.index) < Math.max(term.length, 3));
-      if (overlaps) continue;
+      const overlapIdx = hit.positions.findIndex((p) => Math.abs(p - m!.index) < Math.max(term.length, 3));
+      if (overlapIdx !== -1) {
+        // Same occurrence matched by two aliases ("agentic" / "agentic ai"): keep the longer span.
+        const [s, e] = hit.spans[overlapIdx];
+        const [ns, ne] = [m.index, m.index + m[0].length];
+        if (ne - ns > e - s) hit.spans[overlapIdx] = [Math.min(s, ns), Math.max(e, ne)];
+        continue;
+      }
       hit.positions.push(m.index);
+      hit.spans.push([m.index, m.index + m[0].length]);
       hit.count++;
       if (!hit.matchedTerms.includes(m[0])) hit.matchedTerms.push(m[0]);
     }

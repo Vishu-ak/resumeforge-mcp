@@ -102,7 +102,12 @@ export function suggestQuickCerts(
   const gapW = new Map(gaps.map((g) => [g.skill, g.weight]));
   const jdW = new Map(jd.keywords.map((k) => [k.skill, k.weight]));
   const lower = candidateText.toLowerCase();
-  const pool = QUICK_CERTS.filter((c) => !lower.includes(c.name.toLowerCase()));
+  // Already held? Match the full name or its short code ("AZ-900", "CKAD", "PSM I").
+  const held = (name: string) => {
+    const code = name.match(/\(([^)]+)\)/)?.[1]?.toLowerCase();
+    return lower.includes(name.toLowerCase()) || (!!code && new RegExp(`\\b${code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(lower));
+  };
+  const pool = QUICK_CERTS.filter((c) => !held(c.name));
   const covered = new Set<string>();
   const picked: { c: (typeof QUICK_CERTS)[number]; closes: string[] }[] = [];
   // Greedy set cover: each pick must close gaps the previous picks didn't.

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { suggestQuickCerts } from "../src/core/boost.js";
 import { pickTheme } from "../src/core/bridge.js";
 import { analyzeGaps } from "../src/core/gap.js";
 import { analyzeJobDescription } from "../src/core/jd.js";
 import { translateTitles } from "../src/core/titles.js";
+import { findSkills } from "../src/core/skills.js";
+import { scoreResume } from "../src/core/score.js";
 
 // Found by running ResumeForge on a real Go backend posting.
 const JD = `Software Engineer
@@ -59,5 +62,28 @@ describe("regressions from a real JD", () => {
     expect(items).not.toContain("Supply Chain Management");
     expect(items).not.toContain("Microsoft Excel");
     expect(items).toEqual(expect.arrayContaining(["Python", "PostgreSQL (Postgres)"]));
+  });
+
+  it("doesn't suggest a certification the candidate already holds by its short code", () => {
+    const jd = analyzeJobDescription("Cloud Engineer\nRequirements:\n- Microsoft Azure and cloud architecture experience\n- Kubernetes");
+    const gaps = [{ skill: "Microsoft Azure", weight: 5 }, { skill: "Cloud Architecture", weight: 4 }];
+    expect(suggestQuickCerts(jd, gaps, "Certifications: Microsoft AZ-900").map((c) => c.name)).not.toContain("Microsoft Azure Fundamentals (AZ-900)");
+    expect(suggestQuickCerts(jd, gaps, "no certs").map((c) => c.name)).toContain("Microsoft Azure Fundamentals (AZ-900)");
+  });
+
+  it("does not match a term inside a hyphenated compound", () => {
+    expect(findSkills("Built APIs for a multi-user research platform").has("User Research")).toBe(false);
+    expect(findSkills("Ran user research interviews").has("User Research")).toBe(true);
+  });
+
+  it("treats Azure certification codes as evidence of Azure", () => {
+    expect(findSkills("Certifications: Microsoft AZ-900").has("Microsoft Azure")).toBe(true);
+  });
+
+  it("doesn't count 'AI' inside compound terms as keyword stuffing", () => {
+    const text = "EXPERIENCE\nEngineer | Acme | Jan 2024 - Present\n" +
+      Array.from({ length: 4 }, () => "- Built Generative AI and Agentic AI features with AI guardrails").join("\n");
+    const s = scoreResume({ resume_text: text }, "AI Engineer\nRequirements:\n- Generative AI and Agentic AI experience");
+    expect(s.overused_keywords).not.toContain("Artificial Intelligence");
   });
 });

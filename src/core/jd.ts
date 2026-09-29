@@ -231,7 +231,7 @@ export function analyzeJobDescription(jdText: string, opts: { title?: string; co
     for (const [name, hit] of hits) {
       let entry = agg.get(name);
       if (!entry) {
-        entry = { hit: { ...hit, count: 0, matchedTerms: [], positions: [] }, weight: 0, sections: new Set(), cues: new Set() };
+        entry = { hit: { ...hit, count: 0, matchedTerms: [], positions: [], spans: [] }, weight: 0, sections: new Set(), cues: new Set() };
         agg.set(name, entry);
       }
       const prior = entry.hit.count;
