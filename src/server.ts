@@ -209,6 +209,7 @@ export function createServer(opts: ServerOptions): McpServer {
         candidate_approved: z.boolean().describe("true only after the candidate reviewed and approved the final content"),
         formats: z.array(z.enum(["docx", "pdf", "md", "txt"])).default(["docx", "pdf"]),
         max_pages: z.number().int().min(1).max(3).default(1),
+        page_size: z.enum(["letter", "a4"]).default("letter").describe("Paper size for PDF and DOCX output"),
         output_dir: z.string().optional().describe("Local mode only. Defaults to ~/ResumeForge or $RESUMEFORGE_OUTPUT_DIR"),
         company: z.string().optional().describe("Used in the file name"),
         role: z.string().optional().describe("Used in the file name"),
@@ -217,7 +218,7 @@ export function createServer(opts: ServerOptions): McpServer {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ resume, candidate_approved, formats, max_pages, output_dir, company, role, jd_text, candidate_sources }) => {
+    async ({ resume, candidate_approved, formats, max_pages, page_size, output_dir, company, role, jd_text, candidate_sources }) => {
       if (!candidate_approved) {
         return fail("Show the final resume to the candidate and get explicit approval first, then call again with candidate_approved=true.", {
           preview_markdown: resumeToMarkdown(resume),
@@ -232,7 +233,7 @@ export function createServer(opts: ServerOptions): McpServer {
         return fail(`Unfilled placeholders remain: ${[...new Set(placeholders)].join(", ")}. Replace them with the candidate's real numbers, or reword the bullet without a number.`);
       }
 
-      const files = await renderAll(resume, formats as Format[], { outputDir: output_dir, write: opts.writeFiles, company, role, maxPages: max_pages });
+      const files = await renderAll(resume, formats as Format[], { outputDir: output_dir, write: opts.writeFiles, company, role, maxPages: max_pages, pageSize: page_size });
       const jd = jd_text ? analyzeJobDescription(jd_text, { title: role, company }) : null;
       const score = jd_text ? scoreResume({ resume }, jd_text, candidate_sources, jd!) : undefined;
       const summary = {

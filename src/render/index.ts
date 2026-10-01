@@ -5,6 +5,7 @@ import { bulletText, type Resume } from "../schemas.js";
 import { certLabel, contactLine, projectLabel, resumeToText, sectionOrder, skillsTitle } from "../core/resumeText.js";
 import { renderDocx } from "./docx.js";
 import { renderPdf } from "./pdf.js";
+import type { PageSize } from "./pageSize.js";
 
 export type Format = "docx" | "pdf" | "md" | "txt";
 
@@ -75,7 +76,7 @@ const MIME: Record<Format, string> = {
 export async function renderAll(
   r: Resume,
   formats: Format[],
-  opts: { outputDir?: string; write: boolean; company?: string; role?: string; maxPages?: number },
+  opts: { outputDir?: string; write: boolean; company?: string; role?: string; maxPages?: number; pageSize?: PageSize },
 ): Promise<RenderedFile[]> {
   const stem = fileStem(r, opts.company, opts.role);
   const dir = opts.outputDir ? resolve(opts.outputDir) : defaultOutputDir();
@@ -84,9 +85,9 @@ export async function renderAll(
   for (const f of formats) {
     let buffer: Buffer;
     let note: string | undefined;
-    if (f === "docx") buffer = await renderDocx(r);
+    if (f === "docx") buffer = await renderDocx(r, opts.pageSize);
     else if (f === "pdf") {
-      const res = await renderPdf(r, opts.maxPages ?? 1);
+      const res = await renderPdf(r, opts.maxPages ?? 1, opts.pageSize);
       buffer = res.buffer;
       note = res.fitted ? `${res.pages} page(s)` : `Runs to ${res.pages} pages at the smallest readable size. Cut the weakest bullets to fit ${opts.maxPages ?? 1}.`;
     } else if (f === "md") buffer = Buffer.from(resumeToMarkdown(r), "utf8");

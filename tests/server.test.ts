@@ -89,6 +89,20 @@ describe("MCP server", () => {
     expect(out.linkedin_alignment.suggested_headline).toMatch(/Senior Backend Engineer/);
   });
 
+  it("renders A4 PDF and DOCX when requested", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "resumeforge-a4-"));
+    const res = await client.callTool({
+      name: "render_resume",
+      arguments: { resume: RESUME_JSON, candidate_approved: true, formats: ["docx", "pdf"], output_dir: dir, page_size: "a4" },
+    });
+    expect(res.isError).toBeFalsy();
+    const out = firstJson(res);
+    const paths = Object.fromEntries(out.files.map((file: { format: string; path: string }) => [file.format, file.path]));
+    const pdf = readFileSync(paths.pdf).toString("latin1");
+    expect(pdf).toMatch(/\/MediaBox\s+\[\s*0\s+0\s+595\.28\s+841\.89\s*\]/);
+    expect(readFileSync(paths.docx).subarray(0, 2).toString()).toBe("PK");
+  });
+
   it("returns files inline in remote (HTTP) mode", async () => {
     const remote = await connect(false);
     const res = (await remote.callTool({ name: "render_resume", arguments: { resume: RESUME_JSON, candidate_approved: true, formats: ["pdf"] } })) as {
