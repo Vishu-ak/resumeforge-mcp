@@ -1,0 +1,5 @@
+[
+  { "day": "mon", "requiredHours": 8, "requiredSkills": ["cashier"] },
+  { "day": "tue", "requiredHours": 8, "requiredSkills": ["cashier"] },
+  { "day": "wed", "requiredHours": 6, "requiredSkills": ["inventory"] }
+]
