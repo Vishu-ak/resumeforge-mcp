@@ -1,0 +1,22 @@
+[
+  {
+    "id": "e1",
+    "name": "Ava",
+    "skills": ["cashier", "inventory"],
+    "costPerHour": 20,
+    "productivityScore": 1.2,
+    "maxHoursPerWeek": 20,
+    "preferredHoursPerWeek": 16,
+    "availabilityByDay": { "mon": 8, "tue": 8, "wed": 4 }
+  },
+  {
+    "id": "e2",
+    "name": "Noah",
+    "skills": ["cashier"],
+    "costPerHour": 18,
+    "productivityScore": 1.1,
+    "maxHoursPerWeek": 24,
+    "preferredHoursPerWeek": 20,
+    "availabilityByDay": { "mon": 8, "tue": 8, "wed": 8 }
+  }
+]
